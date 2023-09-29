@@ -49,7 +49,7 @@ def runWorld(sizeX, sizeY, time, stop, worldInfo):
 
 worldX = 10
 worldY = 10
-runtime = 200
+runtime = 700
 displaySize = (800,600) # this can be changed for larger size if desired 
 
 # set up some simple 'maze' environments. You can also create your own, if you want.

@@ -113,11 +113,12 @@ class GridAgent(GridObject):
           # --- Insert your actions here ---
           # Needed: explore the world. Decide if there's still something to explore, then
           # use appropriate search to explore the space.
-          
+      
+          self._depthFirstExploration(world, self.x, self.y)
           # default action is just a random move in some direction.
-          GridObject.__setattr__(self,"_currentAction",Action(self, Action.move, None, round(numpy.random.uniform(-0.49999,3.5))))
+          # GridObject.__setattr__(self,"_currentAction",Action(self, Action.move, None, round(numpy.random.uniform(-0.49999,3.5))))
           return self._currentAction
-
+      
     
       # TODO
       # implement depth-first search, creating a map in the process
@@ -125,12 +126,51 @@ class GridAgent(GridObject):
       # where a decision is possible, then 'backtracking' once no further choices are available, back
       # to the last point where a choice was possible.
       def _depthFirstExploration(self, world, x, y):
-           # FIXME build the map, indexed by (origin)(destination) pairs
-           self._map[(x,y)] = {}
-           self._map[(x,y)][(x+1,y+1)] = {}
-           # FIXME obviously this does nothing
-           GridObject.__setattr__(self,"_currentAction",Action(self, Action.inaction, None, -1))
-           return self._currentAction
+         
+         #Checks frontier if current location is within list; if it is remove it
+         for location in self._frontier:
+            if location == (x,y):
+               self._frontier.remove(location)
+
+         # Find all avalaible places to move
+         currentposition = world._grid[y][x]
+         # FIXME build the map, indexed by (origin)(destination) pairs
+         self._map[(x,y)] = {
+            "access" : {
+                0 : currentposition.canGo(0),
+                1 : currentposition.canGo(1),
+                2 : currentposition.canGo(2),
+                3 : currentposition.canGo(3)
+
+            }
+         }
+        
+         #print("Backtrack: ", self._backtrack)
+         canMove = False
+         for direction in self._map[(x,y)]["access"]:
+            # For all legal positions
+             if self._map[(x,y)]["access"][direction] == True:
+               #generate location coords using given current direction
+               nextLocation = currentposition._neighbours[int(direction)].x, currentposition._neighbours[int(direction)].y
+
+               if self._inFrontier(nextLocation) == None and self._map.get(nextLocation) == None:
+                  self._frontier.append(nextLocation)
+               if self._inFrontier(nextLocation) != None and len(self._frontier) != None:
+                  self._backtrack.append((x,y))
+                  GridObject.__setattr__(self,"_currentAction",Action(self, Action.move, None, direction))
+                  canMove = True
+         print(self._frontier)
+         if canMove == False:
+            print("BACKTRACK ACTIVATE")
+
+            lastloc = self._backtrack.pop()
+            backtrackDirection = self._getDirection(lastloc)
+            currentGrid = world._grid[self.y][self.x]
+            #self._backtrack.append(lastloc)
+            GridObject.__setattr__(self, "_currentAction", Action(self, Action.move, None, backtrackDirection))
+         return self._currentAction
+      
+      
 
       # TODO
       # prune the map to get rid of uninteresting 'corridor' points where no turns are allowed
@@ -167,3 +207,7 @@ class GridAgent(GridObject):
           except StopIteration:
              return None
           return nextTgt
+
+
+def _randNumb():
+          return numpy.round((numpy.random.randint(0 ,3)))
